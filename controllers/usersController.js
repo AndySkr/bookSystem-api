@@ -2,6 +2,24 @@ let usersDAO = require('../model/usersDAO');
 const crypto = require('crypto');
 
 module.exports = {
+    list: async (ctx, next) => {
+        let data = {
+            list: [
+                {
+                    name: 'Andy',
+                    age: 18,
+                },
+                {
+                    name: 'C.John',
+                    age: 20
+                }, {
+                    name: 'Rose',
+                    age: 19
+                }
+            ]
+        }
+        ctx.body = { code: '200', "message": "ok", data: data }
+    },
     /**
      * 添加用户
      */
@@ -25,8 +43,10 @@ module.exports = {
             }
         }
 
-    }
-    ,
+    },
+    /** 
+     * 登陆
+    */
     login: async (ctx, next) => {
         const hash = crypto.createHash('md5');
         hash.update(ctx.request.body.userPassword);
