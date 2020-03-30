@@ -1,8 +1,8 @@
-const config={
+const config = {
     host: 'localhost',
     port: 3306,
     user: 'root',
     password: '295278',
-    database: 'qiqu'
-}
+    database: 'book'
+};
 module.exports = config;

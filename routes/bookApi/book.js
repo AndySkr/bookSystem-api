@@ -1,5 +1,5 @@
-const router = require('koa-router')()
-const bookController = require('../../controllers/bookController')
+const router = require('koa-router')();
+const bookController = require('../../controllers/bookController');
 router.prefix('/');
-router.post('/queryAllBookList', bookController.getAllBookList);
-module.exports = router
+router.get('/queryAllBookList', bookController.getAllBookList);
+module.exports = router;

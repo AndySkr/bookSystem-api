@@ -50,22 +50,22 @@ app.use(async (ctx, next) => {
     console.log(`${ctx.method} ${ctx.url} - ${ms}ms`);
 });
 // ******************************* 体验洋葱模型 ************************
-app.use(async (ctx, next) => {
-    console.log(1);
-    await next();
-    console.log(111);
-    // await next();
-});
-app.use(async (ctx, next) => {
-    console.log(2);
-    await next();
-    console.log(222);
-    // await next();
-});
-app.use(async (ctx, next) => {
-    console.log(3);
-    await next();
-});
+// app.use(async (ctx, next) => {
+//     console.log(1);
+//     await next();
+//     console.log(111);
+//     // await next();
+// });
+// app.use(async (ctx, next) => {
+//     console.log(2);
+//     await next();
+//     console.log(222);
+//     // await next();
+// });
+// app.use(async (ctx, next) => {
+//     console.log(3);
+//     await next();
+// });
 // *********************************************************************
 // routes
 app.use(index.routes(), index.allowedMethods());
