@@ -1,5 +1,5 @@
 const router = require('koa-router')();
-const usersController = require('../../controllers/usersController');
+const usersController = require('../../controllers/UserController/usersController');
 router.prefix('/');
 router.get('/list', usersController.list);
 router.post('/login', usersController.login);

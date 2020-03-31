@@ -1,4 +1,4 @@
-const bookDAO = require('../model/bookDAO');
+const bookDAO = require('../../model/BookDAO/bookDAO');
 module.exports = {
     /**
      *获取所有图书列表
