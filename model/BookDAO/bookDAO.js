@@ -12,7 +12,11 @@ class Book {
      */
     addNewBook(params) {
         return DAO('INSERT INTO bookinfo (book_name,author,classification,remaining,count)VALUES(?,?,?,?)', [
-            ...params
+            params.bookName,
+            params.author,
+            params.classification,
+            params.remaining,
+            params.count
         ]);
     }
     /**
@@ -20,7 +24,13 @@ class Book {
      * book_name,author,classification,count,book_id
      */
     editBookInfo(params) {
-        return DAO('UPDATE bookinfo SET book_name=?,author=?, classification=?,count=? WHERE book_id=?', [...params]);
+        return DAO('UPDATE bookinfo SET book_name=?,author=?, classification=?,count=? WHERE book_id=?', [
+            params.bookName,
+            params.author,
+            params.classification,
+            params.count,
+            params.bookId
+        ]);
     }
     /**
      * 借出书籍
@@ -29,18 +39,33 @@ class Book {
         return DAO('UPDATE bookinfo SET remaining=remaining-1 WHERE book_id=4', [book_id]);
     }
     /**
+     * 根据book_id 查询书籍信息
+     */
+    searchBookInfoByBookId(book_id) {
+        return DAO('SELECT * FROM bookinfo WHERE book_id=?', [book_id]);
+    }
+    /**
+     * 添加借阅记录
+     */
+    addBorrowRecord(params) {
+        return DAO(
+            'INSERT INTO borrowrecord (borrowPersonName,re_book_id,department,borrowTime,givebackTime) VALUES (?,?,?,?,?)',
+            [params.borrowPersonName, params.re_book_id, params.department, params.borrowTime, params.givebackTime]
+        );
+    }
+    /**
      * 归还书籍增加剩余量
      */
     giveBackBookAddRemaining(book_id) {
         return DAO('UPDATE bookinfo SET remaining=remaining+1 WHERE book_id=?', [book_id]);
     }
     /**
-     *根据book_id 去record记录里面查询对应的recordId,并且此项的givebackTime为空,说明还未归还
+     *根据book_id 和借阅人姓名 去record记录里面查询对应的recordId,并且此项的givebackTime为空,说明还未归还
      */
-    queryRecordIdByBookId(book_id) {
+    queryRecordIdByBookId(book_id, borrowName) {
         return DAO(
-            'SELECT recordId as id FROM borrowrecord INNER JOIN bookinfo ON bookinfo.book_id = borrowrecord.re_book_id AND bookinfo.book_id = ? AND borrowrecord.givebackTime is null',
-            [book_id]
+            'SELECT recordId as id FROM borrowrecord INNER JOIN bookinfo ON bookinfo.book_id = borrowrecord.re_book_id AND bookinfo.book_id = ? AND borrowrecord.borrowName=? AND borrowrecord.givebackTime is null',
+            [book_id, borrowName]
         );
     }
     /**
@@ -50,7 +75,8 @@ class Book {
         return DAO('UPDATE borrowrecord SET givebackTime=? WHERE recordId =?', [givebacktime, recordId]);
     }
     /**
-     * 查询书籍借阅详情(根据book_id 去record记录里面查询对应的项,并且此项的givebackTime为空,说明还未归还)
+     * 查询书籍借阅详情
+     * (根据book_id 去record记录里面查询对应的项,并且此项的givebackTime为空,说明还未归还)
      */
     searchBorrowInfo(book_id) {
         return DAO(
@@ -63,6 +89,12 @@ class Book {
      */
     searchBorrowList() {
         return DAO('SELECT *  FROM borrowrecord LEFT JOIN bookinfo ON borrowrecord.re_book_id = bookinfo.book_id');
+    }
+    /**
+     * 根据书名搜索书籍
+     */
+    searchByBookName(bookName) {
+        return DAO('SELECT * FROM bookinfo WHERE book_name LIKE %?%', [bookName]);
     }
 }
 module.exports = new Book();
