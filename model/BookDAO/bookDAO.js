@@ -36,7 +36,7 @@ class Book {
      * 借出书籍
      */
     borrowBook(book_id) {
-        return DAO('UPDATE bookinfo SET remaining=remaining-1 WHERE book_id=4', [book_id]);
+        return DAO('UPDATE bookinfo SET remaining=remaining-1 WHERE book_id=?', [book_id]);
     }
     /**
      * 根据book_id 查询书籍信息
@@ -60,11 +60,11 @@ class Book {
         return DAO('UPDATE bookinfo SET remaining=remaining+1 WHERE book_id=?', [book_id]);
     }
     /**
-     *根据book_id 和借阅人姓名 去record记录里面查询对应的recordId,并且此项的givebackTime为空,说明还未归还
+     *根据book_id 和借阅人姓名 去record记录里面查询对应的数据,并且此项的givebackTime为空,说明还未归还
      */
     queryRecordIdByBookId(book_id, borrowName) {
         return DAO(
-            'SELECT recordId as id FROM borrowrecord INNER JOIN bookinfo ON bookinfo.book_id = borrowrecord.re_book_id AND bookinfo.book_id = ? AND borrowrecord.borrowName=? AND borrowrecord.givebackTime is null',
+            'SELECT * FROM borrowrecord INNER JOIN bookinfo ON bookinfo.book_id = borrowrecord.re_book_id AND bookinfo.book_id = ? AND borrowrecord.borrowPersonName = ? AND borrowrecord.givebackTime is null',
             [book_id, borrowName]
         );
     }
@@ -94,7 +94,7 @@ class Book {
      * 根据书名搜索书籍
      */
     searchByBookName(bookName) {
-        return DAO('SELECT * FROM bookinfo WHERE book_name LIKE %?%', [bookName]);
+        return DAO('SELECT * FROM bookinfo WHERE book_name LIKE "%"?"%"', [bookName]);
     }
 }
 module.exports = new Book();

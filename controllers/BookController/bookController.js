@@ -58,17 +58,19 @@ module.exports = {
     /**
      * 借出书籍
      * 更新库存,新增借阅记录
+     * bookId,borrowPersonName,department
      */
     borrowBook: async (ctx, next) => {
         ctx.set('content-type', 'application/json');
-        const book_id = ctx.request.book.bookId;
-        const borrowPersonName = ctx.request.book.borrowPersonName;
-        const department = ctx.request.book.department;
-        const borrowTime = moment.moment().format('YYYY-MM-DD HH:mm:ss');
+        const book_id = ctx.request.body.bookId;
+        const borrowPersonName = ctx.request.body.borrowPersonName;
+        const department = ctx.request.body.department;
+        const borrowTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
         try {
-            await bookDAO.borrowBook(book_id);
             const bookInfo = await bookDAO.searchBookInfoByBookId(book_id);
-            if (bookInfo.remaining) {
+            console.log(bookInfo);
+            if (bookInfo && bookInfo[0].remaining > 0) {
+                console.log(bookInfo.remaining);
                 const obj = {
                     borrowPersonName: borrowPersonName,
                     re_book_id: book_id,
@@ -76,8 +78,11 @@ module.exports = {
                     borrowTime: borrowTime,
                     givebackTime: null
                 };
+                await bookDAO.borrowBook(book_id);
                 await bookDAO.addBorrowRecord(obj);
                 ctx.body = { code: 200, message: 'ok', data: { state: true } };
+            } else {
+                ctx.body = { code: 500, message: '书籍余量不足', data: { state: false } };
             }
         } catch (error) {
             console.log(error);
@@ -86,18 +91,38 @@ module.exports = {
     },
     /**
      * 归还书籍
+     * bookId
+     * borrowName 借书人
      */
     giveBackBook: async (ctx, next) => {
         ctx.set('content-type', 'application/json');
         const book_id = ctx.request.body.bookId;
         const borrowName = ctx.request.body.borrowName;
         try {
-            await bookDAO.giveBackBookAddRemaining(book_id);
-            const recordId = await bookDAO.queryRecordIdByBookId(book_id, borrowName);
-            const givebacktime = moment.moment().format('YYYY-MM-DD HH:mm:ss');
-            if (recordId) {
-                await bookDAO.updateGiveBackTime(givebacktime, recordId);
+            const res = await bookDAO.queryRecordIdByBookId(book_id, borrowName);
+            const recordInfo = res[0];
+            const count = recordInfo.count;
+            const remaining = recordInfo.remaining;
+            if (remaining === count) {
+                ctx.body = { code: 500, message: '归还书籍失败', data: { state: false } };
+                return;
+            }
+            if (recordInfo.recordId) {
+                const givebacktime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+                try {
+                    await Promise.all([
+                        bookDAO.giveBackBookAddRemaining(book_id),
+                        bookDAO.updateGiveBackTime(givebacktime, recordInfo.recordId)
+                    ]);
+                    ctx.body = { code: 200, message: '归还书籍成功', data: { state: true } };
+                } catch (error) {
+                    console.log(error);
+                    ctx.body = { code: 500, message: '归还书籍失败', data: { state: false } };
+                }
+
                 ctx.body = { code: 200, message: 'ok', data: { state: true } };
+            } else {
+                ctx.body = { code: 500, message: '查询书籍异常', data: { state: false } };
             }
         } catch (error) {
             console.log(error);
@@ -112,7 +137,12 @@ module.exports = {
         ctx.set('content-type', 'application/json');
         try {
             const res = await bookDAO.searchBorrowInfo(book_id);
-            ctx.body = { code: 200, message: 'ok', data: res };
+            const data = {
+                borrowPersonName: res.borrowPersonName,
+                department: res.department,
+                borrowTime: moment(res.department).format('YYYY-MM-DD HH:mm:ss')
+            };
+            ctx.body = { code: 200, message: 'ok', data: data };
         } catch (error) {
             console.log(error);
             ctx.body = { code: 500, message: '系统异常', data: {} };
@@ -131,7 +161,7 @@ module.exports = {
             ctx.body = { code: 500, message: '系统异常', data: {} };
         }
     },
-    searchByBookName: async () => {
+    searchByBookName: async (ctx, next) => {
         ctx.set('content-type', 'application/json');
         try {
             const bookName = ctx.request.body.bookName;
